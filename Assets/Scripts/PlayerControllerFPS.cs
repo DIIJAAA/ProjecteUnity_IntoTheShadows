@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
-    [Header("Movement Settings")]
+ [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float lookSensitivity = 2f;
     [SerializeField] private float gravity = 9.8f;
@@ -20,28 +20,24 @@ public class PlayerController : MonoBehaviour
     
     void Start()
     {
-        InitializeController();
+        characterController = GetComponent<CharacterController>();
+        
+        if (cameraTransform == null)
+            cameraTransform = Camera.main?.transform;
+
         ConfigureLights();
         LockCursor();
     }
 
-    private void InitializeController()
+    void Update()
     {
-        characterController = GetComponent<CharacterController>();
-        
-        if (cameraTransform == null)
-        {
-            cameraTransform = Camera.main?.transform;
-            if (cameraTransform == null)
-            {
-                Debug.LogError("[PlayerController] No s'ha trobat la càmera!");
-            }
-        }
+        HandleInput();
+        HandleMovement();
+        HandleMouseLook();
     }
 
     private void ConfigureLights()
     {
-        // Llum principal (Spot)
         if (playerLight != null)
         {
             playerLight.type = LightType.Spot;
@@ -51,11 +47,8 @@ public class PlayerController : MonoBehaviour
             playerLight.color = new Color(1f, 0.96f, 0.9f);
             playerLight.shadows = LightShadows.Soft;
             playerLight.shadowStrength = 0.5f;
-            playerLight.shadowBias = 0.02f;
-            playerLight.shadowNormalBias = 0.2f;
         }
         
-        // Llum de reompliment (Point)
         if (fillLight != null)
         {
             fillLight.type = LightType.Point;
@@ -64,6 +57,50 @@ public class PlayerController : MonoBehaviour
             fillLight.color = new Color(0.29f, 0.29f, 0.35f);
             fillLight.shadows = LightShadows.None;
         }
+    }
+
+    private void HandleInput()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (cursorLocked)
+                UnlockCursor();
+            else
+                LockCursor();
+        }
+    }
+
+    private void HandleMovement()
+    {
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
+        
+        Vector3 direction = transform.right * horizontal + transform.forward * vertical;
+        Vector3 movement = direction * moveSpeed;
+        
+        if (characterController.isGrounded)
+            verticalVelocity = -0.5f;
+        else
+            verticalVelocity -= gravity * Time.deltaTime;
+        
+        movement.y = verticalVelocity;
+        characterController.Move(movement * Time.deltaTime);
+    }
+    
+    private void HandleMouseLook()
+    {
+        if (!cursorLocked) return;
+
+        float mouseX = Input.GetAxis("Mouse X") * lookSensitivity;
+        float mouseY = Input.GetAxis("Mouse Y") * lookSensitivity;
+        
+        transform.Rotate(Vector3.up * mouseX);
+        
+        verticalRotation -= mouseY;
+        verticalRotation = Mathf.Clamp(verticalRotation, -90f, 90f);
+        
+        if (cameraTransform != null)
+            cameraTransform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
     }
 
     private void LockCursor()
@@ -78,65 +115,5 @@ public class PlayerController : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         cursorLocked = false;
-    }
-    
-    void Update()
-    {
-        HandleInput();
-        HandleMovement();
-        HandleMouseLook();
-    }
-
-    private void HandleInput()
-    {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            if (cursorLocked)
-                UnlockCursor();
-            else
-                LockCursor();
-        }
-    }
-    
-    private void HandleMovement()
-    {
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
-        
-        Vector3 direction = transform.right * horizontal + transform.forward * vertical;
-        Vector3 movement = direction * moveSpeed;
-        
-        // Gravity
-        if (characterController.isGrounded)
-        {
-            verticalVelocity = -0.5f;
-        }
-        else
-        {
-            verticalVelocity -= gravity * Time.deltaTime;
-        }
-        
-        movement.y = verticalVelocity;
-        characterController.Move(movement * Time.deltaTime);
-    }
-    
-    private void HandleMouseLook()
-    {
-        if (!cursorLocked) return;
-
-        float mouseX = Input.GetAxis("Mouse X") * lookSensitivity;
-        float mouseY = Input.GetAxis("Mouse Y") * lookSensitivity;
-        
-        // Rotació horitzontal
-        transform.Rotate(Vector3.up * mouseX);
-        
-        // Rotació vertical (limitada)
-        verticalRotation -= mouseY;
-        verticalRotation = Mathf.Clamp(verticalRotation, -90f, 90f);
-        
-        if (cameraTransform != null)
-        {
-            cameraTransform.localRotation = Quaternion.Euler(verticalRotation, 0f, 0f);
-        }
     }
 }

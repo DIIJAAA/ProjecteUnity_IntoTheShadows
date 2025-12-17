@@ -1256,6 +1256,16 @@ MonoBehaviour:
   timerText: {fileID: 0}
   messageText: {fileID: 0}
   messagePanel: {fileID: 0}
+  hintsPerRun: 3
+  hintCooldownSeconds: 8
+  hintsText: {fileID: 0}
+  hintPingClip: {fileID: 8300000, guid: f9a9189fa3daf934393fb8a68f8487ab, type: 3}
+  hintPingMaxDistance: 45
+  hintPingMinDistance: 3
+  hintPingMinVolume: 0.05
+  hintPingMaxVolume: 0.7
+  hintPingPitchNear: 1.15
+  hintPingPitchFar: 0.9
   pauseMenuPanel: {fileID: 0}
   keyPickupSound: {fileID: 8300000, guid: 654000bf093409e4888a25c8df340bdc, type: 3}
   hurtSound: {fileID: 8300000, guid: a886b7b4514cb754fae1dbb16e93c8c8, type: 3}

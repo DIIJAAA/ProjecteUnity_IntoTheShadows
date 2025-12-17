@@ -5,7 +5,7 @@ public class MusicManager : MonoBehaviour
 {
     public static MusicManager Instance { get; private set; }
 
-    [Header("Clips per escena")]
+    [Header("Clips")]
     [SerializeField] private AudioClip mainMenuMusic;
     [SerializeField] private AudioClip gameMusic;
     [SerializeField] private AudioClip gameOverMusic;
@@ -16,7 +16,7 @@ public class MusicManager : MonoBehaviour
 
     private AudioSource musicSource;
 
-    private void Awake()
+    void Awake()
     {
         if (Instance != null && Instance != this)
         {
@@ -28,7 +28,8 @@ public class MusicManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
 
         musicSource = GetComponent<AudioSource>();
-        if (musicSource == null) musicSource = gameObject.AddComponent<AudioSource>();
+        if (musicSource == null) 
+            musicSource = gameObject.AddComponent<AudioSource>();
 
         musicSource.loop = true;
         musicSource.playOnAwake = false;
@@ -36,19 +37,18 @@ public class MusicManager : MonoBehaviour
         musicSource.volume = volume;
     }
 
-    private void OnEnable()
+    void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
-    private void OnDisable()
+    void OnDisable()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    private void Start()
+    void Start()
     {
-        // per si entres directament a una escena en Play
         ApplyMusicForScene(SceneManager.GetActiveScene().name);
     }
 
@@ -61,13 +61,17 @@ public class MusicManager : MonoBehaviour
     {
         AudioClip target = null;
 
-        if (sceneName == "MainMenu") target = mainMenuMusic;
-        else if (sceneName == "Game") target = gameMusic;
-        else if (sceneName == "GameOver") target = gameOverMusic;
+        if (sceneName == "MainMenu") 
+            target = mainMenuMusic;
+        else if (sceneName == "Game") 
+            target = gameMusic;
+        else if (sceneName == "GameOver") 
+            target = gameOverMusic;
 
         if (target == null) return;
 
-        if (musicSource.clip == target && musicSource.isPlaying) return;
+        if (musicSource.clip == target && musicSource.isPlaying) 
+            return;
 
         musicSource.clip = target;
         musicSource.volume = volume;
@@ -77,6 +81,7 @@ public class MusicManager : MonoBehaviour
     public void SetVolume(float newVolume01)
     {
         volume = Mathf.Clamp01(newVolume01);
-        if (musicSource != null) musicSource.volume = volume;
+        if (musicSource != null) 
+            musicSource.volume = volume;
     }
 }

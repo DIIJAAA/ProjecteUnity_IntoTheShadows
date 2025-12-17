@@ -1,19 +1,15 @@
 using UnityEngine;
 using System.Collections;
 
-/// <summary>
-/// Porta de sortida que s'obre quan el jugador té la clau
-/// IMPORTANT: Necessita un BoxCollider amb "Is Trigger" activat
-/// </summary>
 [RequireComponent(typeof(BoxCollider))]
 public class ExitDoor : MonoBehaviour
 {
-    [Header("Referències")]
-    [SerializeField] private Transform doorTransform;
+    [Header("Visual")]
+    [SerializeField] private Transform doorVisual;
 
-    [Header("Configuració d'Obertura")]
-    [SerializeField] private float openSpeed = 2f;
-    [SerializeField] private Vector3 openOffset = new Vector3(0, 4, 0);
+    [Header("Obertura")]
+    [SerializeField] private float openSpeed = 3f;
+    [SerializeField] private float openDistance = 4f;
 
     [Header("Audio")]
     [SerializeField] private AudioClip lockedSound;
@@ -28,34 +24,36 @@ public class ExitDoor : MonoBehaviour
 
     void Start()
     {
-        InitializeDoorTransform();
+        InitializeDoorVisual();
         InitializeAudio();
         InitializeTrigger();
-        CacheGameManager();
+        gameManager = GameManager.Instance;
+        
+        Debug.Log($"[ExitDoor] Inicialitzada a {transform.position}");
     }
 
-    private void InitializeDoorTransform()
+    private void InitializeDoorVisual()
     {
-        if (doorTransform == null)
+        // Busca automàticament el visual si no està assignat
+        if (doorVisual == null)
         {
-            // Busca automàticament la porta si no està assignada
-            foreach (Transform child in GetComponentsInChildren<Transform>())
-            {
-                if (child.name.Contains("Door") && child != transform && !child.name.Contains("Doorway"))
-                {
-                    doorTransform = child;
-                    break;
-                }
-            }
+            doorVisual = transform.Find("DoorVisual");
         }
 
-        if (doorTransform != null)
+        if (doorVisual != null)
         {
-            closedPosition = doorTransform.position;
+            // Assegura que la porta visual estigui ben posicionada
+            doorVisual.localPosition = new Vector3(0f, 2f, 0f);
+            doorVisual.localRotation = Quaternion.identity;
+            doorVisual.localScale = new Vector3(2.5f, 3.5f, 0.2f);
+            
+            closedPosition = doorVisual.localPosition;
+            
+            Debug.Log($"[ExitDoor] DoorVisual configurat a posició local: {doorVisual.localPosition}");
         }
         else
         {
-            Debug.LogError($"[ExitDoor] No s'ha trobat la porta! Assigna 'Door Transform' manualment a {gameObject.name}");
+            Debug.LogError("[ExitDoor] No s'ha trobat DoorVisual!");
         }
     }
 
@@ -70,65 +68,54 @@ public class ExitDoor : MonoBehaviour
 
     private void InitializeTrigger()
     {
-        // Assegura que hi ha un trigger configurat correctament
         triggerCollider = GetComponent<BoxCollider>();
         if (triggerCollider == null)
-        {
             triggerCollider = gameObject.AddComponent<BoxCollider>();
-        }
         
         triggerCollider.isTrigger = true;
+        triggerCollider.size = new Vector3(4f, 5f, 4f); // Més gran per assegurar detecció
+        triggerCollider.center = new Vector3(0f, 2.5f, 0f);
         
-        // Ajusta la mida del trigger si és molt petita
-        if (triggerCollider.size.magnitude < 1f)
-        {
-            triggerCollider.size = new Vector3(2f, 3f, 2f);
-            Debug.Log($"[ExitDoor] Trigger ajustat automàticament a {gameObject.name}");
-        }
-    }
-
-    private void CacheGameManager()
-    {
-        gameManager = FindFirstObjectByType<GameManager>();
-        if (gameManager == null)
-        {
-            Debug.LogError("[ExitDoor] No s'ha trobat el GameManager!");
-        }
+        Debug.Log($"[ExitDoor] Trigger configurat: size={triggerCollider.size}, center={triggerCollider.center}");
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        // Debug per verificar col·lisions
-        Debug.Log($"[ExitDoor] Trigger activat per: {other.gameObject.name} (Tag: {other.tag})");
-
-        if (!other.CompareTag("Player") || isOpen || isOpening)
+        Debug.Log($"[ExitDoor] Trigger detectat amb: {other.name}, Tag: {other.tag}");
+        
+        if (!other.CompareTag("Player"))
         {
+            Debug.Log("[ExitDoor] No és el Player, ignorant");
             return;
         }
 
-        if (gameManager != null && gameManager.HasKey())
+        if (isOpen || isOpening)
         {
+            Debug.Log("[ExitDoor] Porta ja oberta o obrint-se");
+            return;
+        }
+
+        if (gameManager == null)
+        {
+            Debug.LogError("[ExitDoor] GameManager és null!");
+            return;
+        }
+
+        bool hasKey = gameManager.HasKey();
+        Debug.Log($"[ExitDoor] Player té clau? {hasKey}");
+
+        if (hasKey)
+        {
+            Debug.Log("[ExitDoor] Obrint porta!");
             StartCoroutine(OpenDoor());
         }
         else
         {
-            PlayLockedSound();
-            ShowLockedMessage();
-        }
-    }
+            Debug.Log("[ExitDoor] Porta tancada - clau necessària");
+            
+            if (lockedSound != null)
+                audioSource.PlayOneShot(lockedSound);
 
-    private void PlayLockedSound()
-    {
-        if (lockedSound != null && audioSource != null)
-        {
-            audioSource.PlayOneShot(lockedSound);
-        }
-    }
-
-    private void ShowLockedMessage()
-    {
-        if (gameManager != null)
-        {
             gameManager.ShowMessage("Troba la clau per sortir!", 2f);
         }
     }
@@ -137,65 +124,63 @@ public class ExitDoor : MonoBehaviour
     {
         isOpening = true;
 
-        if (openSound != null && audioSource != null)
-        {
+        if (openSound != null)
             audioSource.PlayOneShot(openSound);
-        }
 
-        if (doorTransform == null)
+        if (doorVisual == null)
         {
-            Debug.LogError("[ExitDoor] doorTransform és null!");
+            Debug.LogError("[ExitDoor] DoorVisual és null a OpenDoor!");
             yield break;
         }
 
-        Vector3 targetPosition = closedPosition + openOffset;
+        // La porta s'obre cap amunt (Y+)
+        Vector3 targetPosition = closedPosition + Vector3.up * openDistance;
 
-        // Desactiva el collider de la porta
-        Collider doorCollider = doorTransform.GetComponent<Collider>();
+        Debug.Log($"[ExitDoor] Obrint de {doorVisual.localPosition} a {targetPosition}");
+
+        // Desactiva col·lisions de la porta
+        Collider doorCollider = doorVisual.GetComponent<Collider>();
         if (doorCollider != null)
-        {
             doorCollider.enabled = false;
-        }
 
         // Animació d'obertura
-        while (Vector3.Distance(doorTransform.position, targetPosition) > 0.01f)
+        float elapsed = 0f;
+        while (Vector3.Distance(doorVisual.localPosition, targetPosition) > 0.01f && elapsed < 5f)
         {
-            doorTransform.position = Vector3.MoveTowards(
-                doorTransform.position,
+            doorVisual.localPosition = Vector3.MoveTowards(
+                doorVisual.localPosition,
                 targetPosition,
                 openSpeed * Time.deltaTime
             );
+            elapsed += Time.deltaTime;
             yield return null;
         }
 
-        doorTransform.position = targetPosition;
+        doorVisual.localPosition = targetPosition;
         isOpen = true;
+
+        Debug.Log("[ExitDoor] Porta completament oberta!");
 
         yield return new WaitForSeconds(1.5f);
 
-        CompleteLevel();
-    }
-
-    private void CompleteLevel()
-    {
         if (gameManager != null)
         {
+            Debug.Log("[ExitDoor] Completant joc!");
             gameManager.CompleteGame();
-        }
-        else
-        {
-            Debug.LogError("[ExitDoor] GameManager no disponible per completar el joc!");
         }
     }
 
-    // Debug visual
+    // Debug visual al Scene View
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.green;
-        if (triggerCollider != null)
+        BoxCollider bc = GetComponent<BoxCollider>();
+        if (bc != null && bc.isTrigger)
         {
+            Gizmos.color = new Color(0f, 1f, 0f, 0.3f);
+            Matrix4x4 oldMatrix = Gizmos.matrix;
             Gizmos.matrix = transform.localToWorldMatrix;
-            Gizmos.DrawWireCube(triggerCollider.center, triggerCollider.size);
+            Gizmos.DrawCube(bc.center, bc.size);
+            Gizmos.matrix = oldMatrix;
         }
     }
 }

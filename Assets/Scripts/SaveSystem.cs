@@ -1,12 +1,7 @@
 using UnityEngine;
 
-/// <summary>
-/// Sistema de guardado del joc compatible amb Unity 6
-/// Guarda l'estat del jugador entre sessions
-/// </summary>
 public static class SaveSystem
 {
-    // Claus de PlayerPrefs
     private const string KEY_HAS_SAVE = "HasSaveData";
     private const string KEY_PLAYER_LIVES = "PlayerLives";
     private const string KEY_HAS_KEY = "HasKey";
@@ -18,17 +13,11 @@ public static class SaveSystem
     private const string KEY_PLAYER_POS_Y = "PlayerPosY";
     private const string KEY_PLAYER_POS_Z = "PlayerPosZ";
     
-    /// <summary>
-    /// Comprova si hi ha una partida guardada
-    /// </summary>
     public static bool HasSaveData()
     {
         return PlayerPrefs.GetInt(KEY_HAS_SAVE, 0) == 1;
     }
     
-    /// <summary>
-    /// Guarda l'estat actual del joc
-    /// </summary>
     public static void SaveGame(GameData data)
     {
         PlayerPrefs.SetInt(KEY_HAS_SAVE, 1);
@@ -43,20 +32,12 @@ public static class SaveSystem
         PlayerPrefs.SetFloat(KEY_PLAYER_POS_Z, data.playerPosition.z);
         
         PlayerPrefs.Save();
-        
-        Debug.Log("Partida guardada!");
     }
     
-    /// <summary>
-    /// Carrega l'estat guardat del joc
-    /// </summary>
     public static GameData LoadGame()
     {
         if (!HasSaveData())
-        {
-            Debug.LogWarning("No hi ha dades guardades!");
             return null;
-        }
         
         GameData data = new GameData
         {
@@ -73,13 +54,9 @@ public static class SaveSystem
             )
         };
         
-        Debug.Log("Partida carregada!");
         return data;
     }
     
-    /// <summary>
-    /// Esborra la partida guardada
-    /// </summary>
     public static void DeleteSave()
     {
         PlayerPrefs.DeleteKey(KEY_HAS_SAVE);
@@ -94,14 +71,9 @@ public static class SaveSystem
         PlayerPrefs.DeleteKey(KEY_PLAYER_POS_Z);
         
         PlayerPrefs.Save();
-        
-        Debug.Log("Partida esborrada!");
     }
 }
 
-/// <summary>
-/// Estructura de dades del joc
-/// </summary>
 [System.Serializable]
 public class GameData
 {

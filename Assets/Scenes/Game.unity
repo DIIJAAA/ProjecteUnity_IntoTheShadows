@@ -1472,7 +1472,7 @@ GameObject:
   - component: {fileID: 1689066699}
   - component: {fileID: 1689066698}
   m_Layer: 5
-  m_Name: HintText
+  m_Name: HintsText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1858,16 +1858,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MazeRenderer
   mazeGenerator: {fileID: 2034068415}
   mazeCellPrefab: {fileID: 4605969533041643782, guid: 2541f38de506bd445910d235d36b2ebd, type: 3}
+  ceilingPrefab: {fileID: 0}
   playerPrefab: {fileID: 2099731934}
   keyPrefab: {fileID: 7348184116387019290, guid: f22d0ecf75fb65b4f89a26999c725091, type: 3}
-  exitDoorPrefab: {fileID: 4156284510821781452, guid: 455294f07ab808641a776d82ba097692, type: 3}
-  exitOnTopWall: 1
-  doorInset: 0.08
-  doorYawCorrection: 90
-  doorScaleFallback: {x: 0.4, y: 0.4, z: 0.8}
-  autoFitDoorToWall: 1
-  doorWidthFill: 0.859
-  doorHeightFill: 0.98
+  exitDoorPrefab: {fileID: 6498719555947153542, guid: a25cf4e4005dae2439fc582e072f1b4f, type: 3}
+  enemyPrefab: {fileID: 3745635389746397554, guid: 7db3e328897b06845b432c41628d5525, type: 3}
+  enemyCount: 2
+  minEnemyDistanceFromStart: 6
   cratePrefabs:
   - {fileID: 100000, guid: 480db41665e53e7478c2fa3aa583a1a6, type: 3}
   - {fileID: 100000, guid: fb9146713e012044a9861dc471edd4ee, type: 3}
@@ -1893,8 +1890,6 @@ MonoBehaviour:
   candlesChance: 0.078
   chainChance: 0.049
   cageChance: 0.02
-  debugShowExitBeacon: 1
-  debugBeaconHeight: 12
 --- !u!1 &2099731934 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6194623185876962502, guid: 75dfe78eaa175f74086750c807ae4e75, type: 3}
