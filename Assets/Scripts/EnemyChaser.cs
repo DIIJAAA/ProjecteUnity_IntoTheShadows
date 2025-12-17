@@ -76,7 +76,7 @@ public class EnemyChaser : MonoBehaviour
         visualCylinder.transform.localRotation = Quaternion.identity;
         visualCylinder.transform.localScale = new Vector3(0.5f, 1f, 0.5f);
 
-        // Elimina el collider del cilindre (ja tenim CharacterController)
+        // Elimina el collider del cilindre 
         Collider cylinderCollider = visualCylinder.GetComponent<Collider>();
         if (cylinderCollider != null)
             Destroy(cylinderCollider);

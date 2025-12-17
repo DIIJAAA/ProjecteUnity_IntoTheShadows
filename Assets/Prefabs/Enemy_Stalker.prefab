@@ -74,10 +74,10 @@ MonoBehaviour:
   detectionRange: 10
   stopDistance: 1
   turnSpeedDeg: 540
-  hitCooldownSeconds: 0.5
+  hitCooldownSeconds: 0.4
   despawnDelayAfterHit: 0.1
   footstepsClip: {fileID: 8300000, guid: e2ed4c2d4dcb40441973d58c73028f98, type: 3}
   footstepsInterval: 0.6
   enemyVoiceClip: {fileID: 8300000, guid: 34094905fbd3f10449275118249c38dd, type: 3}
   voiceInterval: 5
-  audioMaxDistance: 14
+  audioMaxDistance: 12
